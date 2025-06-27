@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"lateslip/controllers"
 	"lateslip/events"
 	"log/slog"
@@ -61,6 +62,7 @@ func main() {
 	r.Use(cors.Default())
 
 	r.Use(middleware.RequestIDMiddleware())
+	fmt.Println("Hello .........")
 
 	userRoutes := r.Group("/")
 	{
