@@ -151,9 +151,10 @@ func RequestLateSlip(c *gin.Context) {
 
 	// 5. Return the late slip
 	c.JSON(http.StatusOK, gin.H{
-		"success":       true,
-		"message":       "Late slip created successfully",
-		"lateSlip":      lateSlip,
+		"success":  true,
+		"message":  "Late slip created successfully",
+		"lateSlip": lateSlip,
+
 		"lateSlipCount": student.LateSlipCount + 1, // reflect increment
 	})
 }
@@ -288,7 +289,32 @@ func GetAllLateSlips(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"success": true, "lateSlips": lateSlips})
+	studentCollection := initialializers.DB.Collection("students")
+
+	// Prepare a response slice
+	type LateSlipWithStudent struct {
+		LateSlip models.LateSlip `json:"lateSlip"`
+		Student  models.Student  `json:"student"`
+	}
+	var result []LateSlipWithStudent
+
+	missingStudents := []primitive.ObjectID{}
+	for _, slip := range lateSlips {
+		var student models.Student
+		err := studentCollection.FindOne(ctx, bson.M{"_id": slip.StudentID}).Decode(&student)
+		if err != nil {
+			missingStudents = append(missingStudents, slip.StudentID)
+			continue
+		}
+		result = append(result, LateSlipWithStudent{
+			LateSlip: slip,
+			Student:  student,
+		})
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"success":   true,
+		"lateSlips": result,
+	})
 }
 
 // GET /admin/lateslip/requests
