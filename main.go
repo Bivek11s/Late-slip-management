@@ -58,7 +58,14 @@ func main() {
 	}
 	r := gin.Default()
 
-	r.Use(cors.Default())
+	// Updated CORS config allowing frontend origin and credentials (authorization header)
+	r.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://localhost:5173"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+	}))
 
 	r.Use(middleware.RequestIDMiddleware())
 
