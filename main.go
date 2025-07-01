@@ -83,6 +83,7 @@ func main() {
 	{
 		studentRoutes.POST("/requestLateSlip", controllers.RequestLateSlip)
 		studentRoutes.GET("/studentLateslips", controllers.GetStudentsLateslip)
+		studentRoutes.GET("/today/schedule", controllers.GetTodaySchedule)
 		// Replace SSE with WebSocket endpoint for students
 		studentRoutes.GET("/ws", events.WebSocketHandler)
 	}

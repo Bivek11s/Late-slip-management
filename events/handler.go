@@ -121,10 +121,10 @@ func checkUpcomingClasses() {
 	now := time.Now()
 	fifteenMinsFromNow := now.Add(60 * time.Minute)
 
-	log.Printf("Checking for classes between %s and %s on %s",
-		now.Format("15:04"),
-		fifteenMinsFromNow.Format("15:04"),
-		now.Weekday().String())
+	// log.Printf("Checking for classes between %s and %s on %s",
+	// 	now.Format("15:04"),
+	// 	fifteenMinsFromNow.Format("15:04"),
+	// 	now.Weekday().String())
 
 	// Find schedules for current day and time
 	filter := bson.M{
