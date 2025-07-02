@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -149,6 +150,22 @@ func RequestLateSlip(c *gin.Context) {
 		lateSlip,
 	)
 
+	// Save admin notification to DB
+	notificationCollection := initialializers.DB.Collection("notifications")
+	adminNotification := models.Notification{
+		ID:        primitive.NewObjectID(),
+		UserID:    primitive.NilObjectID, // need to add admin's id
+		Title:     "New Late Slip Request",
+		Message:   fmt.Sprintf("Student %s requested a late slip.", studentID.Hex()),
+		Type:      "late_slip_request",
+		IsRead:    false,
+		CreatedAt: time.Now(),
+	}
+	_, err = notificationCollection.InsertOne(ctx, adminNotification)
+	if err != nil {
+		log.Printf("Failed to save admin notification: %v", err)
+	}
+
 	// 5. Return the late slip
 	c.JSON(http.StatusOK, gin.H{
 		"success":  true,
@@ -264,6 +281,22 @@ func ApproveLateSlip(c *gin.Context) {
 		studentID.Hex(),
 		fmt.Sprintf("Your late slip request has been %s", lateSlip.Status),
 	)
+
+	// Save student notification to DB
+	notificationCollection := initialializers.DB.Collection("notifications")
+	studentNotification := models.Notification{
+		ID:        primitive.NewObjectID(),
+		UserID:    studentID,
+		Title:     "Late Slip " + strings.Title(lateSlip.Status),
+		Message:   fmt.Sprintf("Your late slip request has been %s.", lateSlip.Status),
+		Type:      "late_slip_" + lateSlip.Status,
+		IsRead:    false,
+		CreatedAt: time.Now(),
+	}
+	_, err = notificationCollection.InsertOne(ctx, studentNotification)
+	if err != nil {
+		log.Printf("Failed to save student notification: %v", err)
+	}
 
 	//return the late slip
 	c.JSON(http.StatusOK, gin.H{"success": true, "message": "Late slip approved successfully", "lateSlip": lateSlip})
@@ -446,6 +479,22 @@ func RejectLateSlip(c *gin.Context) {
 		studentID.Hex(),
 		fmt.Sprintf("Your late slip request has been %s", lateSlip.Status),
 	)
+
+	// Save student notification to DB
+	notificationCollection := initialializers.DB.Collection("notifications")
+	studentNotification := models.Notification{
+		ID:        primitive.NewObjectID(),
+		UserID:    studentID,
+		Title:     "Late Slip Rejected",
+		Message:   "Your late slip request has been rejected.",
+		Type:      "late_slip_rejected",
+		IsRead:    false,
+		CreatedAt: time.Now(),
+	}
+	_, err = notificationCollection.InsertOne(ctx, studentNotification)
+	if err != nil {
+		log.Printf("Failed to save student notification: %v", err)
+	}
 
 	//return the late slip
 	c.JSON(http.StatusOK, gin.H{"success": true, "message": "Late slip rejected successfully", "lateSlip": lateSlip})

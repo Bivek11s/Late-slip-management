@@ -11,6 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 var clientManager = NewClientManager()
@@ -149,7 +150,7 @@ func checkUpcomingClasses() {
 	}
 
 	if len(schedules) == 0 {
-		log.Printf("No upcoming classes found")
+		// log.Printf("No upcoming classes found")
 		return
 	}
 
@@ -202,6 +203,27 @@ func checkUpcomingClasses() {
 					// Channel is full or blocked
 					log.Printf("Failed to send notification to student %s: channel full", studentID)
 					failedCount++
+				}
+
+				// After sending the notification via WebSocket
+				objectID, err := primitive.ObjectIDFromHex(studentID)
+				if err != nil {
+					log.Printf("Invalid student ID %s: %v", studentID, err)
+					continue
+				}
+				notificationDoc := models.Notification{
+					ID:        primitive.NewObjectID(),
+					UserID:    objectID, // or use student.ID if you have it
+					Title:     "Class Reminder",
+					Message:   "Your class starts in 15 minutes",
+					Type:      "class_reminder",
+					IsRead:    false,
+					CreatedAt: time.Now(),
+				}
+				notificationCollection := initialializers.DB.Collection("notifications")
+				_, err = notificationCollection.InsertOne(ctx, notificationDoc)
+				if err != nil {
+					log.Printf("Failed to save notification for student %s: %v", studentID, err)
 				}
 			} else {
 				log.Printf("Student %s not connected", studentID)

@@ -78,12 +78,12 @@ func main() {
 
 	}
 
-	// Add WebSocket routes
 	studentRoutes := r.Group("/student").Use(middleware.AuthMiddleware(), middleware.RequireRole("student"))
 	{
 		studentRoutes.POST("/requestLateSlip", controllers.RequestLateSlip)
 		studentRoutes.GET("/studentLateslips", controllers.GetStudentsLateslip)
 		studentRoutes.GET("/today/schedule", controllers.GetTodaySchedule)
+		studentRoutes.GET("/notification/all", controllers.GetAllNotification)
 		// Replace SSE with WebSocket endpoint for students
 		studentRoutes.GET("/ws", events.WebSocketHandler)
 	}
@@ -96,6 +96,8 @@ func main() {
 		adminRoutes.GET("/lateslips/pending", controllers.GetAllPendingLateSlip)
 		adminRoutes.PUT("/lateslips/reject", controllers.RejectLateSlip)
 		adminRoutes.POST("/uploadScheduleData", controllers.UploadScheduleData)
+		adminRoutes.GET("/notification/all", controllers.GetAllNotification)
+
 		// Replace SSE with WebSocket endpoint for admins
 		adminRoutes.GET("/ws", events.WebSocketHandler)
 	}
